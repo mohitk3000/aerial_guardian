@@ -1,0 +1,14 @@
+# Core deep learning
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# YOLO + ByteTrack (built-in)
+ultralytics>=8.0.0
+
+# Computer vision
+opencv-python>=4.7.0
+numpy>=1.23.0
+
+# SAHI tiling via library
+sahi>=0.11.0
