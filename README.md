@@ -196,6 +196,29 @@ For detalied report refer this document [Report.pdf](./Report.pdf)
 
 ------------------------------------------
 
+### YOLOv8 Architecture
+```
+Input image
+    ↓
+Backbone (CSPDarknet)
+→ Extracts features at multiple scales
+→ CSP = Cross Stage Partial — splits feature map into two paths
+  one goes through convolutions, one skips → reduces parameters
+    ↓
+Neck (PANet — Path Aggregation Network)
+→ Top-down: large features inform small scale
+→ Bottom-up: small features inform large scale
+→ Multi-scale feature fusion
+    ↓
+Head (Decoupled detection head)
+→ Separate branches for classification and bounding box regression
+→ Outputs boxes at 3 scales: P3 (small), P4 (medium), P5 (large)
+→ Anchor-free (unlike YOLOv5)
+    ↓
+Post-processing: NMS removes duplicate boxes
+```
+----------------------------------------
+
 ### Hardware: 
 **NVIDIA GeForce GTX 1050 Ti (4GB VRAM)**
 
