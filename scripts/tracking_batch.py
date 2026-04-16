@@ -39,6 +39,8 @@ sahi_model = AutoDetectionModel.from_pretrained(
 # ══════════════════════════════════════════════════════════
 BATCH_SIZE = 4 
 
+ASPECT_RATIO = 0.75  # h/w > 0.75 = person, else reject (bikes/cars)
+
 # ── CLAHE ──────────────────────────────────────────────────
 clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 
@@ -54,7 +56,7 @@ def is_person_shape(x1, y1, x2, y2):
     bh = y2 - y1
     if bw == 0 or bh == 0:
         return False
-    return (bh / bw) > 0.75
+    return (bh / bw) > ASPECT_RATIO
 
 # ── SAHI tiled detection (single frame) ───────────────────
 def run_sahi_detection(frame_enhanced):

@@ -42,12 +42,13 @@ def apply_clahe(frame):
 # ── Aspect ratio filter ────────────────────────────────────
 # Persons: h/w > 0.75 (tall or square)
 # Bicycles/cars: h/w < 0.75 (wide) → rejected
+ASPECT_RATIO = 0.75  # h/w > 0.75 = person, else reject (bikes/cars)
 def is_person_shape(x1, y1, x2, y2):
     bw = x2 - x1
     bh = y2 - y1
     if bw == 0 or bh == 0:
         return False
-    return (bh / bw) > 0.75
+    return (bh / bw) > ASPECT_RATIO
 
 # ── SAHI tiled detection ───────────────────────────────────
 # Slices frame into 256x256 tiles with 40% overlap
@@ -145,7 +146,7 @@ h, w  = first.shape[:2]
 out   = cv2.VideoWriter(OUTPUT, cv2.VideoWriter_fourcc(*"mp4v"), 30, (w, h))
 
 # ── Frame skip settings ────────────────────────────────────
-DETECT_EVERY = 2   # run SAHI every 2nd frame → doubles FPS
+DETECT_EVERY = 2   # run SAHI every 2nd frame
 last_boxes   = []
 last_scores  = []
 fps_list     = []

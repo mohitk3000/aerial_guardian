@@ -6,6 +6,10 @@
  2. **Tracking:** Implement the Multi-Object Tracking (MOT) ByteTrack algorithm, this attempts to maintain consistent IDs despite drone
        movement.
 
+### Big Picture:
+Video frames → Detect persons → Track them across frames → Output annotated video + metrics
+
+### Demo: 
 ![tracking.png](./output/tracking.png)
 
 
@@ -13,7 +17,6 @@
 VisDrone dataset is the MOT of VisDrone Dataset : https://github.com/VisDrone/VisDrone-Dataset?tab=readme-ov-file
 
 ## Pipeline
-
 CLAHE → SAHI Tiling → YOLOv8s → Aspect Filter → NMS → Centroid Tracker → Tails
 
 ------------------------------------------------------
@@ -78,6 +81,18 @@ python3 sequnce_tracking.py
 python3 tracking_KF.py
 ```
 
+
+#### Output: 
+```bash
+Total frames: 1500
+Frame 0/1500   | FPS: 8.2
+Frame 50/1500  | FPS: 12.4
+...
+Done! Saved to ../output/output_tracked.mp4
+Average FPS: 11.3
+Hardware: NVIDIA GeForce GTX 1050 Ti
+```
+
 ------------------------------------------------------
 
 
@@ -107,6 +122,74 @@ python3 tracking_KF.py
 ---------------------------------------------------------------
 
 
+## What I Added Beyond Off-the-Shelf
+- Custom SAHI tiling (256x256, 40% overlap)
+- Aspect ratio filter (removes bikes/cars)
+- Centroid tracker with 15-frame buffer
+- CLAHE contrast enhancement
+
+#### SAHI (Slicing Aided Hyper Inference)
+- **Normal YOLO** → misses tiny persons at altitude
+- **YOLO + SAHI** → detects them by zooming into tiles
+
+#### Why Batch Cropping Helps:
+- Full frame (1920x1080) → person is 8x8 pixels → YOLO struggles
+- Crop that region (480x270) → same person is now 32x32 pixels → YOLO detects easily
+```
+┌─────────┬─────────┐
+│  Tile1  │  Tile2  │
+│    ↕    │    ↕    │
+│ overlap │ overlap │
+├─────────┼─────────┤
+│  Tile3  │  Tile4  │
+│         │         │
+└─────────┴─────────┘
+```
+Overlap is critical, without it, a person sitting at the edge of a tile gets cut in half and missed.
+
+
+#### Added contrast enhancement (CLAHE) before detection to handle hazy drone footage.
+
+#### Final Pipeline: 
+```
+Frame Input
+    ↓
+CLAHE Preprocessing (contrast fix for drone haze)
+    ↓
+SAHI Tiled Inference → YOLOv8n (detect persons)
+    ↓
+ByteTrack (assign + maintain IDs)
+    ↓
+Trajectory tail drawing (last N positions per ID)
+    ↓
+Annotated frame output → MP4 video
+```
+
+#### What CLAHE does here: 
+```
+Original frame (BGR)
+    ↓
+Convert to LAB color space
+    ↓
+Apply CLAHE only to L channel (Lightness)  ← contrast fix here
+    ↓
+Merge back → convert to BGR
+    ↓
+Feed enhanced frame to YOLO
+    ↓
+Draw results on ORIGINAL frame  ← so output video looks natural
+```
+
+#### Trajectory Tail Lines: 
+For each tracked person, store their last N center points
+→ draw a line connecting those points = "tail"
+
+#### What Aspect Ratios Look Like From Drone: 
+- Standing person:   h/w ≈ 2.5  
+- Sitting person:    h/w ≈ 1.0  
+- Crouching person:  h/w ≈ 0.9  
+- Bicycle alone:     h/w ≈ 0.7  
+- Car:               h/w ≈ 0.5  
 
 ### Technical Report: 
 For detalied report refer this document [Report.pdf](./Report.pdf)
