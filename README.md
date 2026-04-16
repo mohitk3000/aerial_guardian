@@ -217,8 +217,23 @@ Head (Decoupled detection head)
     ↓
 Post-processing: NMS removes duplicate boxes
 ```
-----------------------------------------
+-------------------------------------------------------------------
 
+### KALMAN FILTER TRACKER
+- State vector: $[cx, cy, vx, vy]$ where
+  cx, cy = center position
+  vx, vy = velocity (pixels per frame)
+- This is a constant velocity model:
+  next_cx = cx + vx
+  next_cy = cy + vy
+  velocity stays same unless measurement updates it
+- Why this helps for drones:
+  Drone pans right → ALL tracks shift right
+  KF sees consistent velocity → predicts next position
+  Even if detection missed, predicted position is close
+  → correct ID match when person reappears
+
+-------------------------------------------------------------------
 ### Hardware: 
 **NVIDIA GeForce GTX 1050 Ti (4GB VRAM)**
 

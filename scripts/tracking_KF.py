@@ -71,25 +71,7 @@ def run_sahi_detection(frame_enhanced):
         all_scores = [all_scores[i] for i in keep]
     return all_boxes, all_scores
 
-# ══════════════════════════════════════════════════════════
-# KALMAN FILTER TRACKER
-#
-# State vector: [cx, cy, vx, vy]
-#   cx, cy = center position
-#   vx, vy = velocity (pixels per frame)
-#
-# This is a constant velocity model:
-#   next_cx = cx + vx
-#   next_cy = cy + vy
-#   velocity stays same unless measurement updates it
-#
-# Why this helps for drones:
-#   Drone pans right → ALL tracks shift right
-#   KF sees consistent velocity → predicts next position
-#   Even if detection missed, predicted position is close
-#   → correct ID match when person reappears
-# ══════════════════════════════════════════════════════════
-
+# ── Kalman Filter Tracker ─────────────────────────────────
 class KalmanTrack:
     """
     Single track with Kalman Filter state estimation.
